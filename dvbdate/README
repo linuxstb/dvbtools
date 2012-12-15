@@ -1,0 +1,81 @@
+DVBdate 0.1
+-----------
+
+dvbdate is a simple program to set the system clock from the Time and Date
+Table packets in a DTT stream.  It should be identical for setting time from
+a D-SAT stream I think but I can't test that.
+
+You need a DTT (any DVB?) card supported by the Linux DVB driver 
+(www.linuxtv.org), I'm using a Hauppauge WinTV NOVA-T looking at the Sandy
+Heath transmitter near Bedford, UK.
+
+What it does
+------------
+'dvbdate' just looks at the TDT information from the currently tuned multiplex
+and sets the clock to UTC.  (Which is what everyone run's their system clock 
+at right?)
+It would be trivial to change the program to use the Time Offset Table (TOT)
+which contains information about local time, daylight saving etc.
+
+All the DVB stuff is taken from Dave Chapman's DVBtune.
+
+
+Installation
+------------
+
+I would recommend getting the very last ".tar.gz" source version and change
+the include directory for the DVB stuff in the first line of the Makefile.
+
+install using... 
+
+make
+make install
+
+There is no configure script yet - it seems way to simple for that at 
+this point but I probably should write one.
+
+Usage
+-----
+'dvbdate' on it's own prints the date and time obtained from the currently
+tuned multiplex.
+
+Options
+-------
+  -p	Print the current system time and difference from DVB time.
+  -q	Don't print anything apart from errors - make scripts quieter
+  -s	Tries to set the system clock to the time obtained from DVB
+  -f	If the system clock and DVB clock differ by more than 30 minutes,
+	the time won't be set unless you specify this option.  This is really
+	just a silly precaution.
+
+BUGS
+====
+Probably.
+I haven't tested the behaviour during daylight saving - but I think it should 
+be OK.
+
+The latest version can be found at www.holmes.demon.co.uk/dvbdate  
+You can contact the author at <dvbdate@holmes.demon.co.uk>.
+
+
+Copyright
+---------
+
+(c) Laurence Culhane 2002 <dvbdate@holmes.demon.co.uk>
+
+The 'scan_date' routine is based on routines from dvbtune by Dave Chapman,
+(C) Dave Chapman 2001 <dave@dchapman.com> http://www.linuxstb.org
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
