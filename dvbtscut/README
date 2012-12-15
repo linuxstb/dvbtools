@@ -1,0 +1,64 @@
+dvbtscut
+========
+
+A simple utility for extracting part of a DVB transport stream based
+on timestamps.
+
+USAGE
+
+dvbtscut reads from stdin and writes to stdout. Options are:
+
+-s hh:mm:ss.sss  Start point (optional - defaults to start of stream)
+-e hh:mm:ss.sss  End point (optional - defaults to end of stream)
+-t               Test mode - do not write any output
+
+
+The timestamps are the PTS values stored in the video/audio streams -
+dvbtscut looks at all streams and will cut based on the first stream
+which meets the start/end point criteria.
+
+These timestamps do not start at zero at the start of the file, they
+are whatever was sent in the DVB stream.
+
+To find the first timestamp in the stream, do:
+
+dvbtscut -t < file.ts
+
+The first PTS will then be displayed as dvbtscut continues to scan
+through the whole file.
+
+To identify other cut points, you can use mplayer to play the stream.
+Pressing the "o" button will cause mplayer to display the timestamps
+via its OSD.
+
+
+NOTES
+
+dvbdemux currently supports the following types of streams:
+
+MPEG video streams (stream_id 0xe0-0xef)
+MPEG audio streams (stream_id 0xc0-0xcf)
+Private Data 1 streams (stream_id 0xbd)
+
+Private Data 1 streams in the context of DVB broadcasting normally
+contain subtitles or AC3 audio.
+
+COPYRIGHT NOTICE AND LICENSING INFORMATION
+
+Copyright (C) Dave Chapman 2003
+  
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+Or, point your browser to http://www.gnu.org/copyleft/gpl.html
+

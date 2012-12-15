@@ -1,0 +1,107 @@
+Structure of Transport Stream (from ISO/IEC 13818-1):
+
+transport_packet() {
+  sync_byte                                   8    bslbf       0
+  transport_error_indicator                   1    bslbf       1
+  payload_unit_start_indicator                1    bslbf       1
+  transport_priority                          1    bslbf       1
+  PID                                         13   uimsbf      1,2
+  transport_scrambling_control                2    bslbf       3
+  adaption_field_control                      2    bslbf       3
+  continuity_counter                          4    uimsbf      3
+  if (adaption_field_control=='10' || adaption_field_control=='11'){
+      adaption_field()
+  }
+  if (adaption_field_control=='01' || adaption_field_control=='11'){
+      for (i=0;i<N;i++){
+        data_byte                             8    bslbf
+      }
+  }
+}
+
+Structure of Packetized Elementary Stream (from ISO/IEC 13818-1):
+
+This is a simplified version of the full description available in the
+standard document.
+
+PES_packet() {
+  packet_start_code_prefix                   24    bslbf
+  stream_id                                   8    uimsbf
+  PES_packet_length                          16    uimsbf
+  if( stream_id!=program_stream_map
+   && stream_id!=padding_stream
+   && stream_id!=private_stream_2
+   && stream_id!=ECM
+   && stream_id!=EMM
+   && stream_id!=program_stream_directory
+   && stream_id!=DSMCC_stream
+   && stream_id!=ITU-T Rec. H222.1 type E_stream) {
+      '10'                                    2    bslbf
+      PES_scrambling_control                  2    bslbf
+      PES_priority                            1    bslbf
+      data_alignment_indicator                1    bslbf
+      copyright                               1    bslbf
+      original_or_copy                        1    bslbf
+
+      PTS_DTS_flags                           2    bslbf
+      ESCR_flag                               1    bslbf
+      ES_rate_flag                            1    bslbf
+      DSM_trick_mode_flag                     1    bslbf
+      additional_copy_info_flag               1    bslbf
+      PES_CRC_flag                            1    bslbf
+      PES_extension_flag                      1    bslbf
+
+      PES_header_data_length                  8    uimsbf
+      
+      if( PTS_DTS_flags=='10') {
+          [5 bytes containing 33-bit PTS]
+      }
+      if( PTS_DTS_flags=='11') {
+          [10 bytes containing 33-bit PTS then 33-bit DTS]
+      }
+      if( ESCR_flag=='1') {
+          [6 bytes containing 33-bit ESCR]
+      }
+      if( ES_rate_flag=='1') {
+          [3 bytes containing 22-bit ES_rate]
+      }
+      if( DSM_trick_mode_flag=='1') {
+          [Variable number of bytes]
+      }
+      if( additional_copy_info_flag=='1') {
+          marker_bit                          1   bslbf
+          additional_copy_info                7   bslbf
+      }
+      if (PES_CRC_flag=='1') {
+          previous_PES_packet_CRC            16   bslbf
+      }
+      if (PES_extension_flag=='1') {
+         [Variable number of bytes]
+      }
+      for (i=0;i<N1;i++) {
+         stuffing_byte                        8   bslbf
+      }
+      for (i=0;i<N2;i++) {
+         PES_packet_data_byte                 8   bslbf
+      }
+  }
+  else if( stream_id==program_stream_map
+   || stream_id==private_stream_2
+   || stream_id==ECM
+   || stream_id==EMM
+   || stream_id==program_stream_directory
+   || stream_id==DSMCC_stream
+   || stream_id==ITU-T Rec. H222.1 type E_stream) {
+  } 
+      for (i=0;i<PES_packet_length;i++) {
+         PES_packet_data_byte                 8   bslbf
+      }
+  }         
+  else if (stream_id==padding_stream) {
+  } 
+      for (i=0;i<PES_packet_length;i++) {
+         padding_byte                         8   bslbf
+      }
+  }
+}
+
