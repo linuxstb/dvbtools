@@ -1,0 +1,125 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+
+#include "freesat_huffman.h"
+
+struct fsattab {
+    unsigned int value;
+    short bits;
+    char next;
+};
+
+#define START   '\0'
+#define STOP    '\0'
+#define ESCAPE  '\1'
+
+#include "freesat_tables.c"
+
+void freesat_huffman_to_string(unsigned char* uncompressed, int outsize, const unsigned char *src, int size)
+{
+    struct fsattab *fsat_table;
+    unsigned int *fsat_index;
+
+    if (src[1] == 1 || src[1] == 2)
+    {
+        if (src[1] == 1)
+        {
+            fsat_table = fsat_table_1;
+            fsat_index = fsat_index_1;
+        } else {
+            fsat_table = fsat_table_2;
+            fsat_index = fsat_index_2;
+        }
+        memset(uncompressed,0,outsize);
+        int p = 0;
+        unsigned value = 0, byte = 2, bit = 0;
+        while (byte < 6 && byte < size)
+        {
+            value |= src[byte] << ((5-byte) * 8);
+            byte++;
+        }
+        char lastch = START;
+
+        do
+        {
+            bool found = false;
+            unsigned bitShift = 0;
+            char nextCh = STOP;
+            if (lastch == ESCAPE)
+            {
+                found = true;
+                // Encoded in the next 8 bits.
+                // Terminated by the first ASCII character.
+                nextCh = (value >> 24) & 0xff;
+                bitShift = 8;
+                if ((nextCh & 0x80) == 0)
+                {
+                    if (nextCh < ' ')
+                        nextCh = STOP;
+                    lastch = nextCh;
+                }
+            }
+            else
+            {
+                unsigned indx = (unsigned)lastch;
+                unsigned j;
+                for (j = fsat_index[indx]; j < fsat_index[indx+1]; j++)
+                {
+                    unsigned mask = 0, maskbit = 0x80000000;
+                    short kk;
+                    for (kk = 0; kk < fsat_table[j].bits; kk++)
+                    {
+                        mask |= maskbit;
+                        maskbit >>= 1;
+                    }
+                    if ((value & mask) == fsat_table[j].value)
+                    {
+                        nextCh = fsat_table[j].next;
+                        bitShift = fsat_table[j].bits;
+                        found = true;
+                        lastch = nextCh;
+                        break;
+                    }
+                }
+            }
+            if (found)
+            {
+                if (nextCh != STOP && nextCh != ESCAPE)
+                {
+		  //if (p >= strlen(uncompressed))
+                   //     uncompressed.resize(p+10);
+ //TODO: Check for overflow
+                    uncompressed[p++] = nextCh;
+                }
+                // Shift up by the number of bits.
+                unsigned b;
+                for (b = 0; b < bitShift; b++)
+                {
+                    value = (value << 1) & 0xfffffffe;
+                    if (byte < size)
+                        value |= (src[byte] >> (7-bit)) & 1;
+                    if (bit == 7)
+                    {
+                        bit = 0;
+                        byte++;
+                    }
+                    else bit++;
+                }
+            }
+            else
+            {
+                // Entry missing in table.
+	        fprintf(stderr,"ERROR: Missing in table\n");
+                return;
+                //QString result = QString::fromUtf8(uncompressed, p);
+                //result.append("...");
+                //return result;
+            }
+        } while (lastch != STOP && byte < size+4);
+
+        return; // QString::fromUtf8(uncompressed, p);
+    } else {
+      uncompressed[0] = 0;
+    } 
+}
