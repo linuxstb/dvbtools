@@ -256,7 +256,8 @@ int tune_it_s2(int fd_frontend, fe_delivery_system_t sys,unsigned int freq, unsi
     //      if (ioctl(fd_frontend, FE_GET_EVENT, &event) < 0)       //EMPTY THE EVENT QUEUE
     //        break;
     //    }
-  
+
+    if (sys==SYS_DVBS) { modulation = QPSK; }  
 
     if ((ioctl(fd_frontend, FE_SET_PROPERTY, &cmdseq_clear)) == -1) {
         perror("FE_SET_PROPERTY DTV_CLEAR failed");
