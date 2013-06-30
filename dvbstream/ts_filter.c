@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     } else {
       pid=atoi(argv[i]);
       fprintf(stderr,"Filtering pid %d\n",pid);
-      if (pid < 8191) {
+      if (pid < 8192) {
         filters[pid]=1;
         n++;
       }
