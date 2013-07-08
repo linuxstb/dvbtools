@@ -1,0 +1,17 @@
+dvbarchive
+----------
+
+dvbarchive is designed to run 24/7 and will continuously archive a
+single DVB multiplex.
+
+Using command-line options, you specify the tuning parameters, the
+list of channels (identified by their "service id") and the base
+directory for the recordings to be written to.
+
+dvbarchive will create one directory for each service, prefixing the
+service name with the LCN (logical channel number) if available.
+
+
+
+TDT - Freeview broadcasts every second.  Sky transponders appear to be every 10 seconds.  Freesat is ???.  Spain TDT is ???
+
