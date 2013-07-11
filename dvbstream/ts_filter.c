@@ -25,6 +25,8 @@ int main(int argc, char **argv)
   FILE* fd=stdout;
   int output_count=0;
   int split=0;
+  int info=0;
+  int test=0;
   int discontinuity_indicator;
   int adaption_field_control;
   char filename[30];
@@ -35,6 +37,10 @@ int main(int argc, char **argv)
   for (i=1;i<argc;i++) {
     if (!strcmp(argv[i],"-split")) {
       split=1;
+    } else if (!strcmp(argv[i],"-info")) {
+      info=1;
+    } else if (!strcmp(argv[i],"-test")) {
+      test=1;
     } else {
       pid=atoi(argv[i]);
       fprintf(stderr,"Filtering pid %d\n",pid);
@@ -44,6 +50,9 @@ int main(int argc, char **argv)
       }
     }
   }
+
+  if (info) { test = 1; }
+  if (test) { split = 0; }
 
   if (n==0) {
     fprintf(stderr,"Filtering all PIDs\n");
@@ -78,6 +87,9 @@ int main(int argc, char **argv)
     }
 
     if (filters[pid]==1) {
+      if (info) {
+        printf("PID %d, psi = %d\n",pid, (buf[1]&0x40)>>6);
+      }
       if ((discontinuity_indicator==0) && (my_cc[pid]!=(buf[3]&0x0f))) {
         fprintf(stderr,"PID %d - packet incontinuity (%lld bytes read)- expected %02x, found %02x\n",pid,j*188,my_cc[pid],buf[3]&0x0f);
         my_cc[pid]=buf[3]&0x0f;
@@ -93,12 +105,14 @@ int main(int argc, char **argv)
           fprintf(stderr,"INFO: Writing output to file %s\n",filename);
         }
       }
-      n=fwrite(buf,1,188,fd);
-      if (n==188) {
-        j++;
-      } else {
-        fprintf(stderr,"FATAL ERROR - CAN NOT WRITE PACKET %d\n",i);
-        exit(1);
+      if (!test) {
+        n=fwrite(buf,1,188,fd);
+        if (n==188) {
+          j++;
+        } else {
+          fprintf(stderr,"FATAL ERROR - CAN NOT WRITE PACKET %d\n",i);
+          exit(1);
+        }
       }
     }
     n=fread(buf,1,188,stdin);
