@@ -973,9 +973,6 @@ int main(int argc, char **argv)
     if ((pol==0) || (srate==0)) { sys = SYS_DVBT; } 
 
     if ((sys==SYS_DVBS2) || (sys==SYS_DVBS)) {
-      if (sys==SYS_DVBS2) { fprintf(stderr,"Calling tune_it_s2 with sys=SYS_DVBS2\n"); }
-      else { fprintf(stderr,"Calling tune_it_s2 with sys=SYS_DVBS\n"); }
-
       if (tune_it_s2(fd_frontend,sys,freq,srate,pol,tone,specInv,diseqc,modulation,fec,TransmissionMode,guardInterval,bandWidth) < 0) {
         fprintf(stderr,"First tuning attempt failed, trying again...\n");
         if (tune_it_s2(fd_frontend,sys,freq,srate,pol,tone,specInv,diseqc,modulation,fec,TransmissionMode,guardInterval,bandWidth) < 0) {

@@ -35,6 +35,122 @@
 #include "tune.h"
 #include "diseqc.h"
 
+static const char* fe_pilot_tab[] = {
+  "PILOT_ON",
+  "PILOT_OFF",
+  "PILOT_AUTO",
+};
+
+static const char* fe_rolloff_tab[] = {
+  "ROLLOFF_35",
+  "ROLLOFF_20",
+  "ROLLOFF_25",
+  "ROLLOFF_AUTO"
+};
+
+
+static const char* fe_delivery_system_tab[] = {
+  "SYS_UNDEFINED",
+  "SYS_DVBC_ANNEX_AC",
+  "SYS_DVBC_ANNEX_B",
+  "SYS_DVBT",
+  "SYS_DSS",
+  "SYS_DVBS",
+  "SYS_DVBS2",
+  "SYS_DVBH",
+  "SYS_ISDBT",
+  "SYS_ISDBS",
+  "SYS_ISDBC",
+  "SYS_ATSC",
+  "SYS_ATSCMH",
+  "SYS_DMBTH",
+  "SYS_CMMB",
+  "SYS_DAB",
+  "SYS_DVBT2",
+  "SYS_TURBO"
+};
+
+
+static const char* fe_spectral_inversion_tab[] = {
+  "INVERSION_OFF",
+  "INVERSION_ON",
+  "INVERSION_AUTO"
+};
+
+
+static const char* fe_code_rate_tab[] = {
+  "FEC_NONE",
+  "FEC_1_2",
+  "FEC_2_3",
+  "FEC_3_4",
+  "FEC_4_5",
+  "FEC_5_6",
+  "FEC_6_7",
+  "FEC_7_8",
+  "FEC_8_9",
+  "FEC_AUTO",
+  "FEC_3_5",
+  "FEC_9_10",
+};
+
+
+static const char* fe_modulation_tab[] =  {
+  "QPSK",
+  "QAM_16",
+  "QAM_32",
+  "QAM_64",
+  "QAM_128",
+  "QAM_256",
+  "QAM_AUTO",
+  "VSB_8",
+  "VSB_16",
+  "PSK_8",
+  "APSK_16",
+  "APSK_32",
+  "DQPSK"
+};
+
+static const char* fe_transmit_mode_tab[] = {
+  "TRANSMISSION_MODE_2K",
+  "TRANSMISSION_MODE_8K",
+  "TRANSMISSION_MODE_AUTO",
+  "TRANSMISSION_MODE_4K",
+  "TRANSMISSION_MODE_1K",
+  "TRANSMISSION_MODE_16K",
+  "TRANSMISSION_MODE_32K"
+};
+
+static const char* fe_bandwidth_tab[] = {
+  "BANDWIDTH_8_MHZ",
+  "BANDWIDTH_7_MHZ",
+  "BANDWIDTH_6_MHZ",
+  "BANDWIDTH_AUTO",
+  "BANDWIDTH_5_MHZ",
+  "BANDWIDTH_10_MHZ",
+  "BANDWIDTH_1_712_MHZ",
+};
+
+
+static const char* fe_guard_interval_tab[] = {
+  "GUARD_INTERVAL_1_32",
+  "GUARD_INTERVAL_1_16",
+  "GUARD_INTERVAL_1_8",
+  "GUARD_INTERVAL_1_4",
+  "GUARD_INTERVAL_AUTO",
+  "GUARD_INTERVAL_1_128",
+  "GUARD_INTERVAL_19_128",
+  "GUARD_INTERVAL_19_256"
+};
+
+
+static const char* fe_hierarchy_tab[] = {
+  "HIERARCHY_NONE",
+  "HIERARCHY_1",
+  "HIERARCHY_2",
+  "HIERARCHY_4",
+  "HIERARCHY_AUTO"
+};
+
 
 void print_status(FILE* fd,fe_status_t festatus) {
   fprintf(fd,"FE_STATUS:");
@@ -135,7 +251,7 @@ int tune_it(int fd_frontend, unsigned int freq, unsigned int srate, char pol, in
   int hiband = 0;
   static int uncommitted_switch_pos = 0;
   struct dvb_frontend_info fe_info;
-    uint32_t if_freq = 0;
+  uint32_t if_freq = 0;
 
   if ( (res = ioctl(fd_frontend,FE_GET_INFO, &fe_info) < 0)){
      perror("FE_GET_INFO: ");
@@ -339,16 +455,26 @@ int tune_it_s2(int fd_frontend, fe_delivery_system_t sys,unsigned int freq, unsi
         { .cmd = DTV_INNER_FEC,            .u.data = HP_CodeRate },
         { .cmd = DTV_INVERSION,            .u.data = INVERSION_AUTO },
         { .cmd = DTV_ROLLOFF,            .u.data = ROLLOFF_AUTO },
-        { .cmd = DTV_BANDWIDTH_HZ,        .u.data = bandwidth_hz },
         { .cmd = DTV_PILOT,                .u.data = PILOT_AUTO },
         { .cmd = DTV_TUNE },
     };
+
+    fprintf(stderr,"Tuning: DTV_DELIVERY_SYSTEM    = %s\n",fe_delivery_system_tab[sys]);
+    fprintf(stderr,"        DTV_DELIVERY_FREQUENCY = %d (requested: %d)\n",if_freq, freq);
+    fprintf(stderr,"        DTV_MODULATION         = %s\n",fe_modulation_tab[modulation]);
+    fprintf(stderr,"        DTV_SYMBOL_RATE        = %d\n",srate);
+    fprintf(stderr,"        DTV_INNER_FEC          = %s\n",fe_code_rate_tab[HP_CodeRate]);
+    fprintf(stderr,"        DTV_INVERSION          = %s\n",fe_spectral_inversion_tab[INVERSION_AUTO]);
+    fprintf(stderr,"        DTV_BANDWIDTH_HZ       = %s\n",fe_bandwidth_tab[bandwidth_hz]);
+    fprintf(stderr,"        DTV_ROLLOFF            = %s\n",fe_rolloff_tab[ROLLOFF_AUTO]);
+    fprintf(stderr,"        DTV_PILOT              = %s\n",fe_pilot_tab[PILOT_AUTO]);
+
     fprintf(stderr,"Tuning: %d,%d,%d,%d,%d,%d,%d,%d,%d\n",sys,if_freq,modulation,srate,HP_CodeRate,INVERSION_AUTO,ROLLOFF_AUTO,bandwidth_hz,PILOT_AUTO);
     struct dtv_properties cmdseq_tune = {
-        .num = 10,
+        .num = sizeof(p_tune)/sizeof(p_tune[0]),
         .props = p_tune
     };
-    
+
     /* discard stale QPSK events */
     while (1) {
         if (ioctl(fd_frontend, FE_GET_EVENT, &ev) == -1)
